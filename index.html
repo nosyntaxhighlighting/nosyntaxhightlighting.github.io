@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+    </head>
+    
+    <body>
+        <code>
+            clear all
+            close all
+            
+            % Nhận yêu cầu từ người dùng
+            select1 = input('Bạn muốn Mã hoá (nhập 1) hay Giải mã (nhập 2): ');
+            if select1 == 1
+                mahoa()
+            elseif select1 == 2
+                giaima()
+            else
+                error('Nhập sai! Chỉ nhập "1" hoặc "2"!')
+            end
+            
+            % Hàm nhận thông điệp và ma trận chìa khoá từ người dùng
+            function [PC, K] = nhap(S)
+                % Nhập thông điệp cần mã hoá/giải mã
+                T = input(sprintf('\nNhập thông điệp cần %s (Chỉ dùng các kí tự A-Z và _): ', S), 's');
+            
+                % Chuyển thông điệp thành chữ in hoa
+                T = upper(T);
+            
+                % Thay thế ký tự '_' bằng '@' để dễ xử lý
+                T = strrep(T, '_', '@');
+            
+                % Đảm bảo độ dài thông điệp là bội số của 3
+                while mod(length(T), 3) ~= 0
+                        T = strcat(T, '@');
+                end
+            
+                % Chuyển thông điệp thành các giá trị số (A=1, B=2, ..., Z=26, '@'=0)
+                T  = double(T) - 64;
+            
+                % Chuyển thông điệp thành ma trận
+                PC  = reshape(T, 3, length(T) / 3);
+            
+                % Nhập ma trận chìa khoá cấp 3
+                fprintf("Nhập ma trận chìa khoá cấp 3:\n")
+                K  = zeros(3,3);
+                for i = 1:3
+                    for j = 1:3
+                        K(i, j) = input(sprintf("K(%d,%d)= ",i , j));
+                    end
+                end
+            
+                % Kiểm tra ma trận có khả nghịch trong modulo 27 không
+                if round(det(K)) && gcd(round(det(K)), 27) ~= 1
+                    error('det(K) = %d\nƯCLN(det(K), 27) = %d\n=> Ma trận chìa khóa K không khả nghịch trong modulo 27\n', round(det(K)), gcd(round(det(K)), 27));
+                end
+            end
+            
+            % Hàm mã hoá thông điệp
+            function mahoa()
+                % Nhận ma trận bản rõ và ma trận chìa khoá từ người dùng
+                [P, K] = nhap("mã hoá");
+            
+                % Mã hoá ma trận bản rõ thành ma trận bản mã
+                C  = mod(K * P, 27);
+            
+                % Chuyển ma trận bản mã thành thông điệp bản mã
+                TC = char(C(:)' + 64);
+            
+                % Thay thế ký tư '@' thành '_'
+                TC = strrep(TC, '@', '_');
+            
+                % Xoá bớt các ký tự '_' dư thừa ở cuối thông điệp
+                TC = regexprep(TC, '_+$', '');
+            
+                % In ra màn hình kết quả
+                fprintf('\nThông điệp đã mã hóa: %s\n', TC)
+            end
+            
+            % Hàm giải mã thông điệp
+            function giaima()
+                % Nhận ma trận bản mã và ma trận chìa khoá từ người dùng
+                [C, K] = nhap("giải mã");
+            
+                % Tính nghịch đảo của K theo modulo 27
+                % Trước tiên ta tính nghịch đảo modulo 27 của det(K)
+                D = round(det(K));
+                for i=1:26
+                    if mod(D * i, 27) == 1
+                        break;
+                    end
+                end
+                % Sau đó nhân kết quả tìm được với ma trận liên hợp của K (adjoint(K))
+                KN = i * round(adjoint(K));
+            
+                % Mã hoá ma trận bản mã thành ma trận bản rõ
+                P = mod(KN * C, 27);
+            
+                % Chuyển ma trận bản rõ thành thông điệp bản rõ
+                TP = char(P(:)' + 64);
+            
+                % Thay thế ký tự '@' thành '_'
+                TP = strrep(TP, '@', '_');
+            
+                % Xoá bớt các ký tự '_' dư thừa ở cuối thông điệp
+                TP = regexprep(TP, '_+$', '');
+            
+                % In ra màn hình kết quả
+                fprintf('\nThông điệp đã giải mã: %s\n', TP)
+            end
+        </code>
+    </body>
+
+</html>
